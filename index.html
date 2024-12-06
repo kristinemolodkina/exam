@@ -3,15 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>JavaScript Adventure Game</title>
 </head>
 <body>
-    <div>EXAM</div>
+    <script>
+        // Main game object. All game data is stored here
+        const game = {
+            playerName: "", // Stores the name of the player 
+            playerHealth: 200, // Player's health points 
+            playerInventory: [], // Player's inventory 
+            playerLocation: "", // Current location of the player
+            locations: ["Forest", "Mountain", "Cave", "Ruins", "Dungeon"], // Possible locations in the game
+            enemies: { // All enemy types with properties 
+                goblin: { name: "Goblin", damage: 10, health: 30 },
+                troll: { name: "Troll", damage: 20, health: 50 },
+                dragon: { name: "Dragon", damage: 50, health: 100 }
+            },
+            remainingEnemies: ["goblin", "troll", "dragon"], // Keeps track of enemies left
+        };
+
+        // Function to start the game 
+        function startGame() {
+            game.playerHealth = 100; // Reset player health when starting
+            game.playerInventory = []; // Reset inventory
+            game.remainingEnemies = ["goblin", "troll", "dragon"]; // Reset enemies
+            alert("Hey! Do you want to start the game?");
+            game.playerName = prompt("Please enter your name:"); // Ask the player's name
+            alert("It's nice to meet you, " + game.playerName + "! Let's get started!");
+            game.playerLocation = game.locations[0]; // Set the first location
+            alert("You are starting your journey in the " + game.playerLocation + ".");
+            explore(); // Call explore to begin the game loop
+        }
+
+        // Function to explore a location 
+        function explore() {
+            // Check if all enemies are defeated
+            if (game.remainingEnemies.length === 0) {
+                alert("Congratulations " + game.playerName + "! You have defeated all the enemies and won the game!");
+                return; // End the game
+            }
+
+            // Choose a random location
+            let randomLocationIndex = Math.floor(Math.random() * game.locations.length);
+            game.playerLocation = game.locations[randomLocationIndex];
+            alert("You are now exploring the " + game.playerLocation + ".");
+
+            // 50% chance to find an item 
+            if (Math.random() < 0.5) {
+                let inventory = ["Sword", "Spear", "Knife"]; // List of possible items 
+                let randomInventoryIndex = Math.floor(Math.random() * inventory.length);
+                let foundItem = inventory[randomInventoryIndex]; // Randomly select an item
+                game.playerInventory = [...game.playerInventory, foundItem]; // Add item to inventory (Spread Operator)
+                alert("You found a " + foundItem + "!");
+            } else {
+                alert("You found nothing useful here.");
+            }
+
+            // Encounter an enemy or continue exploring
+            let enemy = encounterEnemy();
+            if (enemy) {
+                fight(enemy); // Start a fight if there's an enemy
+            } else {
+                alert("Nothing happened. Keep exploring!"); 
+                explore(); // Recursive call to continue exploring 
+            }
+        }
+
+        // Function to handle encountering an enemy
+        function encounterEnemy() {
+            if (game.remainingEnemies.length === 0) {
+                return null; // No enemies left
+            }
+
+            // Select a random enemy 
+            let randomEnemyIndex = Math.floor(Math.random() * game.remainingEnemies.length);
+            let enemyKey = game.remainingEnemies[randomEnemyIndex];
+            let enemy = { ...game.enemies[enemyKey] }; // Copy enemy properties (Spread Operator)
+
+            alert("You encounter a " + enemy.name + "!");
+
+            // Ask the player to fight or run away 
+            if (confirm("Do you want to fight the " + enemy.name + "?")) {
+                fight(enemy); // If the player chooses to fight
+            } else {
+                alert("You ran away from the " + enemy.name + "."); // If the player chooses to run
+                explore(); // Continue exploring
+            }
+            return null;
+        }
+
+        // Function to handle fighting an enemy 
+        function fight(enemy) {
+            while (game.playerHealth > 0 && enemy.health > 0) { // Continue until someone is defeated
+                let bonusDamage = useItem(); // Use an item from inventory
+
+                // Calculate player's damage
+                let playerDamage = Math.floor(Math.random() * 10) + 1 + bonusDamage;
+                enemy.health -= playerDamage; // Reduce enemy's health
+                alert("You dealt " + playerDamage + " damage to the " + enemy.name + ".");
+
+                // Check if the enemy is defeated
+                if (enemy.health <= 0) {
+                    alert("You defeated the " + enemy.name + "!");
+                    game.remainingEnemies = game.remainingEnemies.filter(key => key !== enemy.name.toLowerCase());
+                    alert("Your current health is " + game.playerHealth + "."); // Show player's health after victory
+                    explore(); // Continue exploring after victory
+                    return;
+                }
+
+                // Calculate enemy's damage 
+                let enemyDamage = Math.floor(Math.random() * enemy.damage) + 1;
+                game.playerHealth -= enemyDamage; // Reduce player's health
+                alert("The " + enemy.name + " hits you for " + enemyDamage + " damage.");
+
+                // Check if the player is defeated
+                if (game.playerHealth <= 0) {
+                    alert("You were defeated by the " + enemy.name + ". Game over!");
+                    if (confirm("Do you want to restart the game?")) {
+                        startGame(); // Restart the game if the player agrees
+                    }
+                    return; // End the game
+                }
+            }
+        }
+
+        // Arrow function to use an item from inventory
+        const useItem = () => {
+            if (game.playerInventory.length === 0) {
+                return 0; // No bonus damage if inventory is empty
+            }
+
+            let item = game.playerInventory.shift(); // Use and remove the first item
+            let bonusDamage = 0;
+
+            // Check the item's effect
+            if (item === "Sword") {
+                bonusDamage = 5;
+            } else if (item === "Spear") {
+                bonusDamage = 7;
+            } else if (item === "Knife") {
+                bonusDamage = 3;
+            }
+
+            alert("You used the " + item + ". Your attack damage is increased by " + bonusDamage + " for this round.");
+            return bonusDamage; // Return bonus damage
+        };
+
+        // Start the game
+        startGame();
+    </script>
 </body>
 </html>
-<script>
-    const startGame = () => {
-        alert("Do you want to start the game?")
-    }
-    startGame();
-</script>
